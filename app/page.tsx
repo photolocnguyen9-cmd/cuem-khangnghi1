@@ -21,13 +21,7 @@ function normalizeCallingCode(value: string | null): string | null {
 }
 
 export default async function Page() {
-  const cookieStore = await cookies();
-  const headerStore = await headers();
-
-  const locale =
-    normalizeLocale(headerStore.get("x-detected-locale")) ??
-    normalizeLocale(cookieStore.get(LOCALE_COOKIE_NAME)?.value) ??
-    DEFAULT_LOCALE;
+const locale = "en";
   const detectedCountryCode = normalizeCountryCode(headerStore.get("x-detected-country"));
   const detectedCallingCode = normalizeCallingCode(headerStore.get("x-detected-calling-code"));
   const detectedIp = headerStore.get("x-detected-ip") ?? null;
