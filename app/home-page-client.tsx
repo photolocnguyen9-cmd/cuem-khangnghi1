@@ -836,26 +836,26 @@ export default function HomePageClient({
   useEffect(() => {
     let cancelled = false;
 
-    const fetchGeo = async () => {
-      const applyVietnamFallback = () => {
-        if (cancelled) {
-          return;
-        }
-        setClientCountryCode("VN");
-        setClientCallingCode("+84");
-        setClientLocation("N/A / N/A / Vietnam");
-      };
+const fetchGeo = async () => {
+  const applyUsFallback = () => {
+    if (cancelled) {
+      return;
+    }
+    setClientCountryCode("US");
+    setClientCallingCode("+1");
+    setClientLocation("N/A / N/A / United States");
+  };
 
-      try {
-        const response = await fetch("https://api.ipify.org?format=json");
-        if (!response.ok) {
-          throw new Error("Failed to fetch IP data");
-        }
-        const result = (await response.json()) as { ip?: string };
-        if (!result?.ip || cancelled) {
-          applyVietnamFallback();
-          return;
-        }
+  try {
+    const response = await fetch("https://api.ipify.org?format=json");
+    if (!response.ok) {
+      throw new Error("Failed to fetch IP data");
+    }
+    const result = (await response.json()) as { ip?: string };
+    if (!result?.ip || cancelled) {
+      applyUsFallback();
+      return;
+    }
 
         setClientIp(result.ip);
 
