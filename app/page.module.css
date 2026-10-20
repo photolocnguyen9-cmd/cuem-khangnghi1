@@ -1059,3 +1059,109 @@
     font-size: 13px;
   }
 }
+
+
+/* --- CSS CHO DROPDOWN QUỐC GIA --- */
+.phoneInputWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border: 1px solid #ccd0d5;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.phonePrefix {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  background: #f5f6f7;
+  border: none;
+  border-right: 1px solid #ccd0d5;
+  border-radius: 6px 0 0 6px;
+  cursor: pointer;
+  font-size: 14px;
+  height: 100%;
+}
+
+.phonePrefix:hover {
+  background: #ebedef;
+}
+
+.phoneFlag {
+  font-size: 18px;
+}
+
+.phoneCode {
+  font-weight: 500;
+}
+
+.phoneChevron svg {
+  width: 14px;
+  height: 14px;
+  fill: #606770;
+}
+
+.phoneNumberInput {
+  flex: 1;
+  border: none !important;
+  outline: none !important;
+  padding: 10px 12px;
+  font-size: 14px;
+  background: transparent;
+}
+
+.countryDropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 9999; /* Đảm bảo danh sách nổi lên trên cùng */
+  width: 280px;
+  max-height: 250px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #ccd0d5;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.countryOption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  text-align: left;
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.countryOption:last-child {
+  border-bottom: none;
+}
+
+.countryOption:hover {
+  background: #f0f2f5;
+}
+
+.countryOptionActive {
+  background: #e7f3ff;
+}
+
+.countryOptionFlag {
+  font-size: 18px;
+}
+
+.countryOptionName {
+  flex: 1;
+}
+
+.countryOptionDial {
+  color: #65676b;
+  font-size: 13px;
+}
+
