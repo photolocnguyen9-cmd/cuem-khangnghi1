@@ -1,0 +1,208 @@
+.container {
+  min-height: 100vh;
+  background: #f2faf9;
+  display: flex;
+  justify-content: center;
+  padding: 32px 16px 40px;
+  font-family: Helvetica, Arial, sans-serif;
+}
+
+.content {
+  width: 100%;
+  max-width: 920px;
+}
+
+.meta {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1c1e21;
+  margin: 0 0 8px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0a1317;
+  margin: 0 0 6px;
+}
+
+.description {
+  font-size: 14px;
+  color: #6a6d72;
+  line-height: 1.45;
+  margin: 0 0 16px;
+}
+
+.imageWrap {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.codeInput {
+  width: 100%;
+  height: 48px;
+  border: 1.5px solid #ccd0d5;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 0 16px;
+  font-size: 15px;
+  color: #1c1e21;
+  margin-bottom: 8px;
+  outline: none;
+}
+
+.codeInput:focus {
+  border-color: #1877f2;
+  box-shadow: 0 0 0 2px rgba(24, 119, 242, 0.15);
+}
+
+.error {
+  color: #ff2b1c;
+  font-size: 13px;
+  line-height: 1.25;
+  margin: 6px 0 14px;
+}
+
+.primaryButton {
+  width: 100%;
+  height: 48px;
+  border: none;
+  border-radius: 999px;
+  background: #4263eb;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+.primaryButton:disabled {
+  background: #d1d5db;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  width: 100%;
+  height: 48px;
+  border: none;
+  border-radius: 999px;
+  background: #e6e7eb;
+  color: #1f2933;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  z-index: 2000;
+}
+
+.modalContent {
+  width: 100%;
+  max-width: 420px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modalHeading {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1c1e21;
+  margin: 0 0 6px;
+}
+
+.modalDescription {
+  font-size: 14px;
+  color: #6a6d72;
+  margin: 0 0 16px;
+  line-height: 1.4;
+}
+
+.optionsWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 18px 0 20px;
+}
+
+.optionCard {
+  width: 100%;
+  border: 1.5px solid #d7dbe2;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.optionText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.optionTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1b1f24;
+  margin: 0;
+}
+
+.optionSubtitle {
+  font-size: 14px;
+  color: #6a6d72;
+  margin: 0;
+}
+
+.optionRadio {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #3b82f6;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.optionRadio span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.optionRadioActive span {
+  background: #3b82f6;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 20px 14px 28px;
+  }
+
+  .title {
+    font-size: 22px;
+  }
+}
