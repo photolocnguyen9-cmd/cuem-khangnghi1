@@ -788,9 +788,9 @@
   display: flex;
   align-items: center;
   height: 52px;
-  border: 2px solid #cccccc;
+  border: 2px solid #cccccc; /* Khôi phục viền 2px cho giống các ô input khác */
   border-radius: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 14px;
   background: #ffffff;
 }
 
@@ -798,14 +798,14 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 12px;
+  padding: 0 12px;
+  height: 100%;
   background: #f5f6f7;
   border: none;
-  border-right: 1px solid #ccd0d5;
+  border-right: 2px solid #cccccc; /* Tạo vạch ngăn cách */
   border-radius: 6px 0 0 6px;
   cursor: pointer;
-  font-size: 14px;
-  height: 100%;
+  font-size: 15px;
 }
 
 .phonePrefix:hover {
@@ -818,6 +818,7 @@
 
 .phoneCode {
   font-weight: 500;
+  color: #1c1e21;
 }
 
 .phoneChevron svg {
@@ -826,15 +827,17 @@
   fill: #606770;
 }
 
-.phoneNumberInput {
+.modalForm .phoneNumberInput {
   flex: 1;
+  width: 100%;
+  height: 100%;
   border: none !important;
   outline: none !important;
-  padding: 10px 12px;
-  font-size: 14px;
-  background: transparent;
+  background: transparent !important;
+  font-size: 15px;
+  padding: 10px 16px !important;
+  margin-bottom: 0 !important;
 }
-
 .countryDropdown {
   position: absolute;
   top: calc(100% + 4px);
