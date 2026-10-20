@@ -825,7 +825,7 @@ export default function HomePageClient({
     }
     const nextLocale = resolveLocaleFromCountryCode(clientCountryCode);
     if (nextLocale === activeLocale) {
-      return;
+      setActiveLocale(nextLocale);
     }
     setActiveLocale(nextLocale);
     if (typeof document !== "undefined") {
