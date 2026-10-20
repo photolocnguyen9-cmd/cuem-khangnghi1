@@ -302,7 +302,7 @@ export default function HomePageClient({
   detectedIp,
   detectedLocation,
 }: HomePageClientProps) {
-  const [activeLocale, setActiveLocale] = useState<Locale>(locale);
+  const [activeLocale, setActiveLocale] = useState<Locale>("en");
   const dictionary = getDictionary(activeLocale);
   const modal = dictionary.modal;
   const sidebar = dictionary.sidebar;
