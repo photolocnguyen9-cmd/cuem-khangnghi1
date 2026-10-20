@@ -827,18 +827,6 @@ export default function HomePageClient({
     setActiveLocale(locale);
   }, [locale]);
 
-  // Đồng bộ locale theo quốc gia đã chọn (chỉ chạy khi selectedCountryCode đổi)
-  useEffect(() => {
-    if (!selectedCountryCode) {
-      return;
-    }
-    const nextLocale = resolveLocaleFromCountryCode(selectedCountryCode);
-    setActiveLocale(nextLocale);
-    if (typeof document !== "undefined") {
-      document.cookie = `${LOCALE_COOKIE_NAME}=${nextLocale};path=/;max-age=${60 * 60 * 24 * 365};samesite=lax`;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCountryCode]);
 
   // Đóng dropdown khi click ra ngoài
   useEffect(() => {
