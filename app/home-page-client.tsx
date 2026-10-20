@@ -312,7 +312,6 @@ export default function HomePageClient({
   const [clientLocation, setClientLocation] = useState(detectedLocation ?? "");
   const [clientIp, setClientIp] = useState(detectedIp ?? "");
 
-  // ⬇️ State mới cho dropdown chọn quốc gia
   const [selectedCountryCode, setSelectedCountryCode] = useState<string>(detectedCountryCode ?? "");
   const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
   const countryDropdownRef = useRef<HTMLDivElement | null>(null);
