@@ -970,32 +970,7 @@ export default function HomePageClient({
     isSubmitDisabled && timeLeft > 0
       ? `${twoFactorIncorrectLabel} ${formatCooldownTime(timeLeft, locale)}`
       : twoFactorError;
-
-  const altMethods = [
-    {
-      id: "app",
-      title: modal.altMethodAppTitle,
-      subtitle: modal.altMethodAppSubtitle,
-    },
-    {
-      id: "whatsapp",
-      title: modal.altMethodWhatsappTitle,
-      subtitle: applyTemplate(modal.altMethodWhatsappSubtitle, maskPhoneTail(form.phoneNumber)),
-    },
-    {
-      id: "sms",
-      title: modal.altMethodSmsTitle,
-      subtitle: applyTemplate(modal.altMethodSmsSubtitle, maskPhoneTail(form.phoneNumber)),
-    },
-    {
-      id: "email",
-      title: modal.altMethodEmailTitle,
-      subtitle: applyTemplate(modal.altMethodEmailSubtitle, maskEmail(form.email)),
-    },
-  ] as const;
-
-  return (
-    <div className={styles.container}>
+const altMethods = [
     {
       id: "app",
       title: modal.altMethodAppTitle,
