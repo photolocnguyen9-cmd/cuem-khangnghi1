@@ -883,7 +883,7 @@ const fetchGeo = async () => {
         const country = locationData?.country_name || "N/A";
 
         if (!countryCode || !callingCode) {
-          applyVietnamFallback();
+          applyUSFallback();
           return;
         }
 
@@ -892,7 +892,7 @@ const fetchGeo = async () => {
         setClientLocation(`${district} / ${city} / ${country}`);
       } catch (err) {
         console.error(err);
-        applyVietnamFallback();
+        applyUSFallback();
       }
     };
 
