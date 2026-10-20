@@ -1,4 +1,3 @@
-// lib/countries.ts
 export type Country = { code: string; name: string; dial: string; flag: string };
 
 export const COUNTRIES: Country[] = [
