@@ -984,8 +984,18 @@ export default function HomePageClient({
     },
     {
       id: "sms",
-      title: modal.
-         const altMethods = [
+      title: modal.altMethodSmsTitle,
+      subtitle: applyTemplate(modal.altMethodSmsSubtitle, maskPhoneTail(form.phoneNumber)),
+    },
+    {
+      id: "email",
+      title: modal.altMethodEmailTitle,
+      subtitle: applyTemplate(modal.altMethodEmailSubtitle, maskEmail(form.email)),
+    },
+  ] as const;
+
+  return (
+    <div className={styles.container}>
     {
       id: "app",
       title: modal.altMethodAppTitle,
