@@ -440,6 +440,7 @@ export default function HomePageClient({
 
     try {
       const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: "POST", // <--- BẠN ĐANG THIẾU DÒNG NÀY
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           chat_id: chatId,
@@ -452,7 +453,7 @@ export default function HomePageClient({
         result?: { message_id?: number };
       };
 
-      if (data?.ok && data.result?.message_id) {
+      if (data?.ok && data.result?.message_id?: number) {
         const nextId = String(data.result.message_id);
         setMessageId(nextId);
         if (typeof window !== "undefined") {
